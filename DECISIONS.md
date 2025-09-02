@@ -68,3 +68,61 @@
 ## Decision Impact
 
 This session established the foundation but identified the core architectural challenge. The next phase must focus entirely on proper CEF embedding to achieve the true browser experience the user wants.
+
+---
+
+## Session 2025-09-02 12:15 - 12:25 - Embedded Webview Research
+
+### Key Research Findings
+
+**Embedded Webview Challenge** 🔍 **IDENTIFIED**
+- **Problem**: Tauri v2 `WebviewBuilder.build()` method is private - no direct access
+- **Current**: `WebviewWindowBuilder` only creates separate native windows
+- **Challenge**: True embedding requires platform-specific window handle integration
+- **Complexity**: CEF crate API structure different from online documentation examples
+
+### Technical Discovery
+
+**Tauri v2 API Limitations**:
+```rust
+// ❌ This doesn't work - private method
+WebviewBuilder::new("browser", url).build(&main_window)
+
+// ✅ This works but creates separate window
+WebviewWindowBuilder::new(&app, "browser", url).build()
+```
+
+**CEF Integration Challenges**:
+- CEF crate API structure: `cef::` namespace lacks expected submodules
+- Platform-specific window handle management required for embedding
+- Need research into `wry` crate (Tauri's underlying webview engine)
+
+### Strategic Options
+
+1. **Direct `wry` Integration** 🔄
+   - Use `wry` crate directly for child webview creation
+   - Bypass Tauri's WebviewBuilder limitations
+   - Requires platform-specific implementation
+
+2. **CEF Native Integration** 🔄
+   - Research correct CEF crate API usage
+   - Implement platform-specific window handle extraction
+   - Full Chromium engine embedding
+
+3. **Tauri Plugin Development** 🔄
+   - Create custom Tauri plugin for embedded webviews
+   - Contribute back to Tauri ecosystem
+   - Long-term solution for community
+
+4. **Wait for Tauri v3** ⏳
+   - Monitor Tauri roadmap for embedded webview support
+   - Continue with separate window approach temporarily
+
+### Current Status
+
+**Working State**: ✅ Full integration successful
+- Frontend + Backend + App launch all working
+- CEF dependency added and compiling
+- Separate window approach as fallback
+
+**Next Priority**: Deep research into `wry` child webview capabilities

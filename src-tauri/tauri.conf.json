@@ -5,7 +5,7 @@
   "identifier": "com.aer.browser",
   "build": {
     "frontendDist": "../ui/dist",
-    "beforeDevCommand": "cd ../ui && bun dev",
+    "beforeDevCommand": "cd /Users/atelaer/Developer/aer-browser/ui && bun dev --host --port 1420",
     "beforeBuildCommand": "cd ../ui && bun build"
   },
   "app": {

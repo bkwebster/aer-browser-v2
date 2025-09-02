@@ -1,39 +1,50 @@
-use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::Manager;
 use url::Url;
+use std::sync::Mutex;
+use std::collections::HashMap;
+use std::sync::LazyLock;
+
+// mod cef_browser; // TODO: Fix CEF API integration
+// CEF integration temporarily disabled while we research the correct API
+
+// Global registry for CEF browser views (keeping for compatibility)
+static CEF_BROWSERS: LazyLock<Mutex<HashMap<String, i32>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
 #[tauri::command]
 async fn navigate_to_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
     // Parse and validate URL
     let parsed_url: Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;
     
-    // Get or create the browser webview window
-    let webview_window = app.get_webview_window("browser-webview");
+    log::info!("Navigating to URL: {}", parsed_url);
     
-    match webview_window {
-        Some(window) => {
-            // Navigate existing webview
-            log::info!("Navigating existing webview to: {}", parsed_url);
-            window.navigate(parsed_url).map_err(|e| e.to_string())?;
-        }
-        None => {
-            log::info!("Creating new webview window for URL: {}", parsed_url);
-            
-            // Create a new webview window for the browser content
-            // We'll position it to appear as if it's embedded in the main window
-            let _webview_window = WebviewWindowBuilder::new(
-                &app, 
-                "browser-webview", 
-                WebviewUrl::External(parsed_url)
-            )
-            .title("Browser Content")
-            .inner_size(800.0, 600.0)
-            .position(100.0, 100.0)
-            .resizable(true)
-            .build()
-            .map_err(|e| format!("Failed to create webview window: {}", e))?;
-            
-            log::info!("Successfully created webview window");
-        }
+    // For now, create a separate window until we implement CEF properly
+    // This is a temporary fallback while we set up CEF integration
+    let _main_window = app.get_webview_window("main")
+        .ok_or("Main window not found")?;
+    
+    // Get existing browser webview or create new one
+    if let Some(browser_window) = app.get_webview_window("browser-webview") {
+        log::info!("Navigating existing webview to: {}", parsed_url);
+        browser_window.navigate(parsed_url).map_err(|e| e.to_string())?;
+    } else {
+        log::info!("Creating new browser webview for: {}", parsed_url);
+        
+        // Temporary: Use WebviewWindowBuilder as fallback
+        // TODO: Replace with CEF embedded browser view
+        use tauri::{WebviewUrl, WebviewWindowBuilder};
+        let _browser_window = WebviewWindowBuilder::new(
+            &app,
+            "browser-webview", 
+            WebviewUrl::External(parsed_url)
+        )
+        .title("Browser Content")
+        .inner_size(800.0, 600.0)
+        .position(100.0, 100.0)
+        .resizable(true)
+        .build()
+        .map_err(|e| format!("Failed to create browser window: {}", e))?;
+        
+        log::info!("Created fallback browser window (will be replaced with CEF)");
     }
     
     Ok(())
@@ -41,7 +52,7 @@ async fn navigate_to_url(url: String, app: tauri::AppHandle) -> Result<(), Strin
 
 #[tauri::command]
 async fn go_back(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(webview) = app.get_webview_window("browser-webview") {
+    if let Some(webview) = app.get_webview("browser-webview") {
         webview.eval("window.history.back()").map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -49,7 +60,7 @@ async fn go_back(app: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 async fn go_forward(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(webview) = app.get_webview_window("browser-webview") {
+    if let Some(webview) = app.get_webview("browser-webview") {
         webview.eval("window.history.forward()").map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -57,7 +68,7 @@ async fn go_forward(app: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 async fn refresh_page(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(webview) = app.get_webview_window("browser-webview") {
+    if let Some(webview) = app.get_webview("browser-webview") {
         webview.eval("window.location.reload()").map_err(|e| e.to_string())?;
     }
     Ok(())
