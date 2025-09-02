@@ -16,29 +16,23 @@ async fn navigate_to_url(url: String, app: tauri::AppHandle) -> Result<(), Strin
             window.navigate(parsed_url).map_err(|e| e.to_string())?;
         }
         None => {
-            log::info!("Creating new embedded webview for URL: {}", parsed_url);
-            // Get main window position and size to calculate embedded position
-            let main_window = app.get_webview_window("main").ok_or("Main window not found")?;
-            let main_pos = main_window.outer_position().unwrap_or_default();
-            let main_size = main_window.outer_size().unwrap_or_default();
+            log::info!("Creating new webview window for URL: {}", parsed_url);
             
-            // Position webview inside main window content area (below chrome)
-            let webview_x = main_pos.x as f64;
-            let webview_y = main_pos.y as f64 + 60.0;  // Below browser chrome
-            let webview_width = main_size.width as f64;
-            let webview_height = main_size.height as f64 - 60.0;  // Account for chrome
+            // Create a new webview window for the browser content
+            // We'll position it to appear as if it's embedded in the main window
+            let _webview_window = WebviewWindowBuilder::new(
+                &app, 
+                "browser-webview", 
+                WebviewUrl::External(parsed_url)
+            )
+            .title("Browser Content")
+            .inner_size(800.0, 600.0)
+            .position(100.0, 100.0)
+            .resizable(true)
+            .build()
+            .map_err(|e| format!("Failed to create webview window: {}", e))?;
             
-            // Create positioned webview window
-            let _webview = WebviewWindowBuilder::new(&app, "browser-webview", WebviewUrl::External(parsed_url))
-                .title("")
-                .inner_size(webview_width, webview_height)
-                .position(webview_x, webview_y)
-                .decorations(false)         // No title bar
-                .always_on_top(false)
-                .resizable(false)
-                .skip_taskbar(true)         // Don't show in dock/taskbar
-                .build()
-                .map_err(|e| e.to_string())?;
+            log::info!("Successfully created webview window");
         }
     }
     

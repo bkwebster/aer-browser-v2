@@ -163,8 +163,18 @@ window.add_child_view(Some(&mut (&browser_view).into()));
 5. Bridge CEF events to React UI for address bar updates
 
 ## Session Notes
-*Last Updated: 2025-09-02 07:00*
+*Last Updated: 2025-09-02 07:47*
+
+### Session 2025-09-02 Evening - Compilation Fixed ✅
+- ✅ Fixed all Rust compilation errors in `/src-tauri/src/lib.rs`
+- ✅ Proper `WebviewWindowBuilder` usage for Tauri v2 API
+- ✅ Backend compiles cleanly: `cargo check` passes
+- ✅ Frontend dev server working: `bun dev --port 1420`
+- ✅ Created `CLAUDE_NOTES.md` with detailed next steps
+- 🔄 Ready for full integration testing: `cargo tauri dev`
+
+### Previous Sessions
 - ✅ Created GitHub repo: https://github.com/bkwebster/aer-browser-v2
 - ✅ Decision tracking established (DECISIONS.md)
 - 🔄 CEF research complete - found proper integration approach
-- 🎯 Next: Implement true CEF embedding (no more separate windows!)
+- 🎯 Next: Test full Tauri dev environment, then implement true embedded webviews
