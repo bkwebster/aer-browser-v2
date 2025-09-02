@@ -108,7 +108,7 @@ function App() {
         </button>
       </div>
 
-      {/* Content area - This is where the webview will be positioned */}
+      {/* Content area - Native webview will be positioned here by Tauri */}
       <div className="flex-1 bg-white relative">
         {!hasWebview && (
           <div className="h-full flex items-center justify-center text-gray-500">
@@ -117,10 +117,10 @@ function App() {
                 🌬️ Aer Browser
               </h1>
               <p className="text-lg">
-                Initializing webview...
+                Enter a URL or search term above to get started!
               </p>
               <p className="text-sm text-gray-400 mt-4">
-                Phase 2: WebView Loading... ⏳
+                Native webview will load here
               </p>
             </div>
           </div>
@@ -130,7 +130,7 @@ function App() {
           <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500 animate-pulse" />
         )}
         
-        {/* The webview will be rendered here by Tauri */}
+        {/* Native webview will be positioned here by Tauri backend */}
       </div>
     </div>
   );

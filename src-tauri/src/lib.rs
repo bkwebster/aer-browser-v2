@@ -3,31 +3,37 @@ use url::Url;
 
 #[tauri::command]
 async fn navigate_to_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
-    let webview_window = app.get_webview_window("browser-view");
+    // Parse and validate URL
+    let parsed_url: Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;
+    
+    // Try to get existing browser webview window
+    let webview_window = app.get_webview_window("browser-webview");
     
     match webview_window {
         Some(window) => {
-            let parsed_url: Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;
+            // Navigate existing webview
             window.navigate(parsed_url).map_err(|e| e.to_string())?;
-            Ok(())
         }
         None => {
-            // Create new webview window if it doesn't exist
-            let parsed_url: Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;
-            let _webview = WebviewWindowBuilder::new(&app, "browser-view", WebviewUrl::External(parsed_url))
-                .title("Browser")
-                .inner_size(1200.0, 740.0)
-                .position(0.0, 60.0)
+            // Create a new webview window positioned within the main window area
+            let _webview = WebviewWindowBuilder::new(&app, "browser-webview", WebviewUrl::External(parsed_url))
+                .title("Browser Content")
+                .inner_size(1200.0, 740.0)  // Same size as main window content area
+                .position(0.0, 60.0)        // Position below the browser chrome
+                .decorations(false)         // No window decorations
+                .always_on_top(false)
+                .resizable(true)
                 .build()
                 .map_err(|e| e.to_string())?;
-            Ok(())
         }
     }
+    
+    Ok(())
 }
 
 #[tauri::command]
 async fn go_back(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(webview) = app.get_webview_window("browser-view") {
+    if let Some(webview) = app.get_webview_window("browser-webview") {
         webview.eval("window.history.back()").map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -35,7 +41,7 @@ async fn go_back(app: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 async fn go_forward(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(webview) = app.get_webview_window("browser-view") {
+    if let Some(webview) = app.get_webview_window("browser-webview") {
         webview.eval("window.history.forward()").map_err(|e| e.to_string())?;
     }
     Ok(())
@@ -43,7 +49,7 @@ async fn go_forward(app: tauri::AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 async fn refresh_page(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(webview) = app.get_webview_window("browser-view") {
+    if let Some(webview) = app.get_webview_window("browser-webview") {
         webview.eval("window.location.reload()").map_err(|e| e.to_string())?;
     }
     Ok(())
