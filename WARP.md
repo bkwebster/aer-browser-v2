@@ -130,8 +130,41 @@ React UI ←→ Tauri Bridge ←→ CEF-RS ←→ Chromium Engine
 - DuckDB chosen for local-first architecture with SQL capabilities
 - CEF integration is complex but feasible with official Tauri bindings
 
+## CEF Integration Research - BREAKTHROUGH! 🎯
+
+### Key Findings from `tauri-apps/cef-rs`:
+
+**Proper Architecture**:
+```rust
+// 1. CEF App with BrowserProcessHandler
+// 2. BrowserView creation (not separate windows!)
+let browser_view = browser_view_create(
+    Some(&mut client),
+    Some(&url),
+    Some(&Default::default()),
+    // ...
+);
+
+// 3. Window delegate that embeds browser view
+window.add_child_view(Some(&mut (&browser_view).into()));
+```
+
+**Key Differences from Current Approach**:
+- ❌ Current: `WebviewWindowBuilder` creates separate windows
+- ✅ Correct: `browser_view_create` + `add_child_view` embeds in existing window
+- ✅ True CEF: Full Chromium engine, not web-based limitations
+- ✅ Native integration: CEF view as child of Tauri window
+
+### Implementation Plan:
+1. Add CEF dependency and setup
+2. Create CEF App and BrowserProcessHandler
+3. Replace current navigation with `browser_view_create`
+4. Embed BrowserView in main Tauri window content area
+5. Bridge CEF events to React UI for address bar updates
+
 ## Session Notes
-*Last Updated: 2025-09-02 06:12*
-- User accidentally closed tab twice, lost session context
-- Resumed work on webview integration 
-- Need to establish better session persistence
+*Last Updated: 2025-09-02 07:00*
+- ✅ Created GitHub repo: https://github.com/bkwebster/aer-browser-v2
+- ✅ Decision tracking established (DECISIONS.md)
+- 🔄 CEF research complete - found proper integration approach
+- 🎯 Next: Implement true CEF embedding (no more separate windows!)
